@@ -21,6 +21,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user')->nullable();
             $table->string('chalenge')->nullable();
             $table->string('answer');
+            $table->string('path')->nullable();
             $table->rememberToken();
             $table->timestamps();
             

@@ -14,10 +14,42 @@ class QuestionController extends Controller
      */
     public function index()
     {
-        $questions = Question::all();
-        $types = Type::all();
-        return view('questions.index', compact ('questions'));
+        // Mengambil semua data soal dan mengelompokkan berdasarkan lesson
+        $questions = Question::all()->groupBy('lesson');
+        return view('questions.index', compact('questions'));
     }
+
+    public function print()
+    {
+        // Mengambil semua data soal dan mengelompokkan berdasarkan lesson
+        $soals = Question::all();
+        return view('kartu', compact('soals'));
+    }
+
+    public function simulation(Request $request)
+    {
+        // Mengambil semua data soal dan mengelompokkan berdasarkan lesson
+        $question = $request->query('question');
+        $time = $request->query('time');
+        $answer = $request->query('answer');
+    
+        return view('questions.simulation', compact('question', 'time', 'answer'));
+    }
+
+    public function preview($lesson)
+    {
+        // Mengambil semua soal berdasarkan lesson yang diklik
+        $questions = Question::where('lesson', $lesson)->get();
+    
+        // Jika tidak ada data, kembalikan ke index dengan pesan error
+        if ($questions->isEmpty()) {
+            return redirect()->route('questions.index')->with('error', 'Lesson not found.');
+        }
+    
+        return view('questions.preview', compact('questions', 'lesson'));
+    }
+    
+    
 
     /**
      * Show the form for creating a new resource.
@@ -65,7 +97,7 @@ class QuestionController extends Controller
         }
     
         // Mengarahkan kembali ke halaman dashboard setelah berhasil
-        return redirect()->route('dashboard')->withSuccess('Great! You have Successfully Created');
+        return redirect()->route('index')->withSuccess('Great! You have Successfully Created');
     }
     
     

@@ -6,6 +6,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KartuController;
 use Illuminate\Support\Facades\Response;
 
+Route::get('/download/pdf/{lesson}', [KartuController::class, 'downloadPDF'])->name('download.pdf');
+
 Route::get('/download-qrcode', function () {
     $url = route('simulation', [
         'question' => request('question'),
@@ -31,14 +33,19 @@ Route::get('/', function () {
     return view('welcome');
 });
 Route::get('question', [QuestionController::class, 'create'])->name('question');
+Route::get('question2', [QuestionController::class, 'create2'])->name('question2');
 Route::get('index', [QuestionController::class, 'index'])->name('index');
 Route::get('print', [QuestionController::class, 'print'])->name('print');
 Route::get('simulation', [QuestionController::class, 'simulation'])->name('simulation');
 Route::get('/questions/preview/{lesson}', [QuestionController::class, 'preview'])->name('preview');
 Route::post('post-question', [QuestionController::class, 'store'])->name('question.post');
+Route::post('post-question2', [QuestionController::class, 'store2'])->name('question.post2');
 Route::get('login', [AuthController::class, 'index'])->name('login');
 Route::post('post-login', [AuthController::class, 'postLogin'])->name('login.post');
 Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('dashboard2', [DashboardController::class, 'index2'])->name('dashboard2');
+Route::get('about', [DashboardController::class, 'about'])->name('about');
+Route::get('contact', [DashboardController::class, 'contact'])->name('contact');
 Route::get('registrationUser', [AuthController::class, 'registration'])->name('registerUser');
 Route::post('post-registrationUser', [AuthController::class, 'postRegistration'])->name('registerUser.post');
 Route::get('logout', [AuthController::class, 'logout'])->name('logout');

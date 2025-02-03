@@ -95,7 +95,7 @@
         <tr>
             @foreach($chunk as $soal)
             <td style="position: relative; width: 50%; height: 200px; text-align: center;">
-                <img src="{{ public_path('images/tcard1.png') }}">
+    <img src="{{ $qrCodePath }}" alt="QR Code" style="width: 200px; height: 200px;">
             </td>
             @endforeach
         </tr>

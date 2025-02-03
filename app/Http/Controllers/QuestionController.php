@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Question;
+use App\Models\Answer;
 use App\Models\Type;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,8 +15,12 @@ class QuestionController extends Controller
      */
     public function index()
     {
-        // Mengambil semua data soal dan mengelompokkan berdasarkan lesson
-        $questions = Question::all()->groupBy('lesson');
+        // Mengambil ID user yang sedang login
+        $userId = auth()->id();
+        
+        // Mengambil data soal yang hanya milik user yang sedang login dan mengelompokkan berdasarkan lesson
+        $questions = Question::where('user', $userId)->get()->groupBy('lesson');
+        
         return view('questions.index', compact('questions'));
     }
 
@@ -28,24 +33,32 @@ class QuestionController extends Controller
 
     public function simulation(Request $request)
     {
-        // Mengambil semua data soal dan mengelompokkan berdasarkan lesson
+        // Mengambil data dari query string
         $question = $request->query('question');
         $time = $request->query('time');
         $answer = $request->query('answer');
+        $chalenge = $request->query('chalenge'); // Pastikan chalenge diterima
     
-        return view('questions.simulation', compact('question', 'time', 'answer'));
+
+    
+        // Pass data ke view
+        return view('questions.simulation', compact('question', 'time', 'answer', 'chalenge'));
     }
+    
 
     public function preview($lesson)
     {
-        // Mengambil semua soal berdasarkan lesson yang diklik
-        $questions = Question::where('lesson', $lesson)->get();
-    
+        // Mengambil ID user yang sedang login
+        $userId = auth()->id();
+        
+        // Mengambil semua soal berdasarkan lesson yang diklik dan sesuai dengan user yang login
+        $questions = Question::where('lesson', $lesson)->where('user', $userId)->get();
+        
         // Jika tidak ada data, kembalikan ke index dengan pesan error
         if ($questions->isEmpty()) {
-            return redirect()->route('questions.index')->with('error', 'Lesson not found.');
+            return redirect()->route('questions.index')->with('error', 'Lesson not found or no questions available for this user.');
         }
-    
+        
         return view('questions.preview', compact('questions', 'lesson'));
     }
     
@@ -57,7 +70,14 @@ class QuestionController extends Controller
     public function create()
     {
         $types = Type::all();        
-        return view('questions.create', compact('types'));
+        $answers = Answer::all();        
+        return view('questions.create', compact('types','answers'));
+    }
+
+    public function create2()
+    {
+        $types = Type::all();        
+        return view('questions.create2', compact('types'));
     }
 
     /**
@@ -100,11 +120,45 @@ class QuestionController extends Controller
         return redirect()->route('index')->withSuccess('Great! You have Successfully Created');
     }
     
+    public function store2(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'questions' => 'required|array|min:1',
+            'questions.*' => 'required|string',
+            'times' => 'required|array|min:1',
+            'times.*' => 'required|integer',
+            'answers' => 'required|array|min:1',
+            'answers.*' => 'required|string',
+            'chalenges' => 'required|array|min:1',
+            'chalenges.*' => 'required|string',
+            'type' => 'required',
+            'user' => 'required'
+        ]);
     
+        // Dapatkan user_id yang sedang login
+        $userId = auth()->user()->id;
     
+        // Cek apakah user ini sudah pernah mengisi soal sebelumnya
+        $lastLesson = Question::where('user', $userId)->max('lesson'); // Mencari nilai lesson terakhir yang diisi oleh user tersebut
+        $lesson = $lastLesson ? $lastLesson + 1 : 1; // Tentukan lesson berikutnya berdasarkan max lesson yang ada
     
+        // Menyimpan data soal baru ke database
+        foreach ($request->questions as $index => $question) {
+            Question::create([
+                'question' => $question,
+                'time' => (int) $request->times[$index],  // Mengubah menjadi integer
+                'answer' => $request->answers[$index],
+                'chalenge' => $request->chalenges[$index],
+                'type' => $request->type,
+                'user' => $request->user,
+                'lesson' => $lesson, // Menambahkan nilai lesson
+            ]);
+        }
     
-    
+        // Mengarahkan kembali ke halaman dashboard setelah berhasil
+        return redirect()->route('index')->withSuccess('Great! You have Successfully Created');
+    }
 
     /**
      * Display the specified resource.

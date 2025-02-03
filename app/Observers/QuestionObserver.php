@@ -21,7 +21,8 @@ class QuestionObserver
         $url = route('simulation', [
             'question' => $question->question,
             'time' => $question->time,
-            'answer' => $question->answer
+            'answer' => $question->answer,
+            'chalenge' => $question->chalenge,
         ]);
 
         // Nama file berdasarkan ID question
